@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  wordpress:
+    image: 'wordpress:fpm-alpine'
+    restart: 'unless-stopped'
+    environment:
+      WORDPRESS_DB_HOST: '158.108.50.35:3306'
+      WORDPRESS_DB_USER: 'agent_dd016aba'
+      WORDPRESS_DB_PASSWORD: $WORDPRESS_DB_PASSWORD
+      WORDPRESS_DB_NAME: 'wp_registrar'
+      WORDPRESS_TABLE_PREFIX: 'wp_'
+      WORDPRESS_DB_CHARSET: 'utf8mb4'
+      WORDPRESS_DB_COLLATE: 'utf8mb4_thai_520_w2'
+    volumes:
+      - 'wp-registrar_data:/var/www/html:rw'
+      - './php-conf.ini:/usr/local/etc/php/conf.d/custom.ini:ro'
+
+  nginx:
+    depends_on:
+      - 'wordpress'
+    image: 'nginx:alpine'
+    restart: 'unless-stopped'
+    ports:
+      - '30020:80'
+    volumes:
+      - 'wp-registrar_data:/var/www/html:ro'
+      - './nginx-conf:/etc/nginx/conf.d:ro'
+
+volumes:
+  wp-registrar_data:
+    driver_opts:
+      type: 'nfs'
+      o: "addr=158.108.50.3,nolock,soft,rw"
+      device: ":/wp-registrar_data"
